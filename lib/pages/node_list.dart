@@ -57,8 +57,12 @@ class _NoteListState extends State<NoteList> {
                     separatorBuilder: (context, index) => const SizedBox(),
                     itemCount: notes.length,
                     itemBuilder: (context, index) {
+                      String imp = '';
                       final note = notes[index];
                       final subtitle = note.date.toString();
+                      if (note.priority == 'High') {
+                        imp = 'Important';
+                      }
                       return Card(
                         color: const Color.fromARGB(121, 4, 226, 255),
                         elevation: 1.0,
@@ -71,33 +75,74 @@ class _NoteListState extends State<NoteList> {
                             note.title,
                           ),
                           subtitle: Text(subtitle),
-                          trailing: IconButton(
-                            onPressed: () async {
-                              await notesDb.delete(note.id);
-                              fetchNotes();
-                              _showSnackBar(
-                                  // ignore: use_build_context_synchronously
-                                  context,
-                                  "Note Deleted Successfully");
-                            },
-                            icon: const Icon(
-                              Icons.delete,
-                              color: Colors.redAccent,
-                            ),
-                          ),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => EditNotePage(
-                                  note: note,
-                                  onUpdate: () {
-                                    fetchNotes();
-                                    _showSnackBar(
-                                        context, "Note Updated Successfully");
-                                  },
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                onPressed: () async {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => EditNotePage(
+                                        note: note,
+                                        onUpdate: () {
+                                          fetchNotes();
+                                          _showSnackBar(context,
+                                              "Note Updated Successfully");
+                                        },
+                                      ),
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(
+                                  Icons.edit_document,
+                                  color: Colors.orange,
                                 ),
                               ),
+                              IconButton(
+                                onPressed: () async {
+                                  await notesDb.delete(note.id);
+                                  fetchNotes();
+                                  _showSnackBar(
+                                      // ignore: use_build_context_synchronously
+                                      context,
+                                      "Note Deleted Successfully");
+                                },
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: Colors.redAccent,
+                                ),
+                              ),
+                            ],
+                          ),
+                          onTap: () {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: Text("${note.title} ${(imp)}"),
+                                  content: SingleChildScrollView(
+                                    child: ListBody(
+                                      children: <Widget>[
+                                        Text(
+                                          note.description!,
+                                          style: const TextStyle(
+                                            fontSize: 20.0,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: const Text('Close'),
+                                    ),
+                                  ],
+                                );
+                              },
                             );
                           },
                         ),
